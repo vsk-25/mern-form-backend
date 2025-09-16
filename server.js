@@ -15,31 +15,39 @@ mongoose.connect(process.env.MONGO_URI, {
   useUnifiedTopology: true,
 })
 .then(() => console.log("✅ MongoDB Connected"))
-.catch((err) => console.log("❌ Mongo Error:", err));
+.catch((err) => console.error("❌ Mongo Error:", err));
 
-// Simple Schema
+// Schema & Model
 const MessageSchema = new mongoose.Schema({
-  text: String,
+  text: { type: String, required: true },
 });
 
 const Message = mongoose.model("Message", MessageSchema);
 
 // Routes
 app.get("/", (req, res) => {
-  res.send("Hello from MERN backend 🚀");
+  res.send("✅ Hello from MERN backend 🚀");
 });
 
 app.get("/messages", async (req, res) => {
-  const msgs = await Message.find();
-  res.json(msgs);
+  try {
+    const msgs = await Message.find();
+    res.json(msgs);
+  } catch (err) {
+    res.status(500).json({ error: "Error fetching messages" });
+  }
 });
 
 app.post("/messages", async (req, res) => {
-  const msg = new Message({ text: req.body.text });
-  await msg.save();
-  res.json(msg);
+  try {
+    const msg = new Message({ text: req.body.text });
+    await msg.save();
+    res.json(msg);
+  } catch (err) {
+    res.status(500).json({ error: "Error saving message" });
+  }
 });
 
-// Start Server
+// Start Server (Render requires process.env.PORT)
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
